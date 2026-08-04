@@ -1,7 +1,12 @@
-# autograd-from-scratch
+<h1 align="center">autograd-from-scratch</h1>
 
-[![tests](https://github.com/krrpranav/autograd-from-scratch/actions/workflows/tests.yml/badge.svg)](https://github.com/krrpranav/autograd-from-scratch/actions/workflows/tests.yml)
+<div align="center">
+
+[![tests](https://github.com/krrpranavv/autograd-from-scratch/actions/workflows/tests.yml/badge.svg)](https://github.com/krrpranavv/autograd-from-scratch/actions/workflows/tests.yml)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
+
+</div>
 
 I built this to understand what `loss.backward()` actually does. It is a small
 automatic differentiation engine in plain NumPy: Karpathy's scalar
@@ -37,6 +42,29 @@ alongside each value through the same local rules, and is cheap in the opposite
 case. Everything in this repo is one of those two ideas, or the two composed.
 
 ![A forward pass computes values; one backward pass fills in every gradient](assets/reverse_mode.svg)
+
+<details>
+<summary>Contents</summary>
+
+- [Quickstart](#quickstart)
+- [Learning from this repo](#learning-from-this-repo)
+- [The guide](#the-guide)
+  - [0. The math you need](#0-the-math-you-need)
+  - [1. Reverse mode: the chain rule, backward](#1-reverse-mode-the-chain-rule-backward-autogradmicrogradpy-autogradenginepy)
+  - [2. Broadcasting: where tensor gradients go wrong](#2-broadcasting-where-tensor-gradients-go-wrong)
+  - [3. Forward mode](#3-forward-mode-autograddualpy)
+  - [4. The adjoint identity: one map, two directions](#4-the-adjoint-identity-one-map-two-directions)
+  - [5. Second order](#5-second-order-autogradsecondorderpy)
+  - [6. Differentiating through an optimizer](#6-differentiating-through-an-optimizer-autogradimplicitpy)
+  - [7. Hessian-vector products](#7-hessian-vector-products-autogradhvppy)
+  - [8. Curvature of the trained network](#8-curvature-of-the-trained-network-exampleslandscapepy)
+  - [9. The training loop](#9-the-training-loop-autogradnnpy-examplestrain_mlppy-examplestrain_gptpy)
+- [Results](#results)
+- [Files](#files)
+- [Limitations](#limitations)
+- [Credit](#credit)
+
+</details>
 
 ## Quickstart
 
