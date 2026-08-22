@@ -48,6 +48,8 @@ case. Everything in this repo is one of those two ideas, or the two composed.
 
 - [Quickstart](#quickstart)
 - [Learning from this repo](#learning-from-this-repo)
+- [Results](#results)
+- [Files](#files)
 - [The guide](#the-guide)
   - [0. The math you need](#0-the-math-you-need)
   - [1. Reverse mode: the chain rule, backward](#1-reverse-mode-the-chain-rule-backward-autogradmicrogradpy-autogradenginepy)
@@ -59,8 +61,6 @@ case. Everything in this repo is one of those two ideas, or the two composed.
   - [7. Hessian-vector products](#7-hessian-vector-products-autogradhvppy)
   - [8. Curvature of the trained network](#8-curvature-of-the-trained-network-exampleslandscapepy)
   - [9. The training loop](#9-the-training-loop-autogradnnpy-examplestrain_mlppy-examplestrain_gptpy)
-- [Results](#results)
-- [Files](#files)
 - [Limitations](#limitations)
 - [Credit](#credit)
 
@@ -175,6 +175,58 @@ the 0 times infinity NaN, conjugate gradient dying on a saddle), the benchmark
 that refused to cross where the textbook argument said it would and why, and a
 table of what is checked against what. Read it whenever; it pairs well with
 the guide but assumes nothing from it.
+
+## Results
+
+Numbers from the current code; `reproduce.py` reruns all of them.
+
+- Per-op reverse-mode gradients match PyTorch to 1e-7, and a separate
+  finite-difference check needs no framework at all (`tests/test_engine.py`).
+- Forward and reverse mode agree as adjoints: $\langle u, Jv \rangle = \langle J^\top u, v \rangle$ to 1e-10,
+  and full Jacobians built column-wise (forward) and row-wise (reverse) match
+  (`tests/test_dual.py`).
+- Second derivatives match PyTorch's double-backward to 1e-8. Newton's method
+  with exact curvature reaches the minimum of a smooth bowl in about 4 steps;
+  gradient descent at learning rate 0.1 takes 50 (`autograd/secondorder.py`).
+- Implicit differentiation through an argmin matches the closed-form ridge
+  derivative to about 1e-16 (`autograd/implicit.py`).
+- Hessian-vector products, computed forward-over-reverse without building the
+  Hessian, match an explicitly assembled Hessian to about 4e-16 (`autograd/hvp.py`).
+- The MLP reaches 99.5% on a two-class spiral; the GPT drives its loss from
+  3.15 to 0.0002 and reproduces its training text exactly (`examples/train_gpt.py`).
+- The trained MLP's loss, as a function of all 1218 parameters, has top
+  Hessian eigenvalue about 11.8, measured with the engine's own Hessian-vector
+  products (`examples/landscape.py`). Section 8 of the guide below shows the
+  resulting loss-landscape slice.
+
+## Files
+
+| Path | What it is |
+|------|------------|
+| **[`autograd/`](autograd/) — the engine** | |
+| [`micrograd.py`](autograd/micrograd.py) | Scalar reverse-mode autograd (Karpathy's micrograd, reimplemented) |
+| [`engine.py`](autograd/engine.py) | The tensor engine: reverse mode on NumPy arrays, broadcasting-aware backward |
+| [`dual.py`](autograd/dual.py) | Forward mode: dual numbers, `jvp`/`vjp`/`jacobian`, the adjoint check |
+| [`secondorder.py`](autograd/secondorder.py) | Order-2 duals: exact second derivatives, dense Hessian, Newton |
+| [`implicit.py`](autograd/implicit.py) | Implicit differentiation: gradients through an argmin |
+| [`hvp.py`](autograd/hvp.py) | Hessian-vector products (Pearlmutter), top eigenvalue, Newton-CG |
+| [`nn.py`](autograd/nn.py) | Linear, Embedding, LayerNorm, Adam, SGD, built on the engine |
+| [`viz.py`](autograd/viz.py) | Renders a computation graph (values and grads) to SVG |
+| **[`examples/`](examples/) — things the engine does** | |
+| [`train_mlp.py`](examples/train_mlp.py) | An MLP on a spiral |
+| [`train_gpt.py`](examples/train_gpt.py) | A small causal Transformer, trained end to end ([gpt-from-scratch](https://github.com/krrpranavv/gpt-from-scratch) explains the architecture) |
+| [`landscape.py`](examples/landscape.py) | Curvature of the trained MLP via the engine's own Hv |
+| [`benchmark.py`](examples/benchmark.py) | Forward vs reverse cost of a full Jacobian, measured |
+| [`figures.py`](examples/figures.py) | Regenerates the explainer diagrams in `assets/` |
+| **Learning materials** | |
+| [`walkthrough.ipynb`](walkthrough.ipynb) | Build the scalar engine from nothing, step by step |
+| [The guide](#the-guide) (in this README) | The walkthrough: prerequisites, hand traces, exercises, glossary |
+| [`challenge/`](challenge/) | Rebuild the engine yourself against checkpoint tests |
+| [`solutions/`](solutions/) | Worked answers and hints for the exercises |
+| [`NOTES.md`](NOTES.md) | What building this taught me, and what is verified against what |
+| **Verification** | |
+| [`tests/`](tests/) | Per-op checks vs PyTorch, finite differences, the adjoint identity |
+| [`reproduce.py`](reproduce.py) | One command: tests, every demo, every figure |
 
 ## The guide
 
@@ -564,8 +616,8 @@ step for step for 20 steps). `examples/train_gpt.py` is a real decoder-only
 Transformer: multi-head causal attention, pre-norm residual blocks, GELU MLP,
 learned positional embeddings, small only in scale (one layer, width 32). The
 architecture itself is not this repo's subject; it is the same model as
-[minimal-gpt](https://github.com/krrpranav/minimal-gpt), which walks the
-architecture line by line, so read that (or Karpathy's "Let's build GPT") if
+[gpt-from-scratch](https://github.com/krrpranavv/gpt-from-scratch), which walks
+the architecture line by line, so read that (or Karpathy's "Let's build GPT") if
 attention is new to you. It memorizes one line of Shakespeare to loss 0.0002, which is
 deliberate overfitting used as an end-to-end gradient check; in real training,
 driving the loss to zero like this would be the thing you avoid. Both training
@@ -615,58 +667,6 @@ to rebuild the engine yourself against the same checkpoint tests; step 3 of
 | embedding | a learned lookup table mapping a token id to a vector |
 | LayerNorm | normalizes each vector to zero mean and unit variance, then rescales |
 | residual connection | computing $x + f(x)$ so gradients can flow around $f$ |
-
-## Results
-
-Numbers from the current code; `reproduce.py` reruns all of them.
-
-- Per-op reverse-mode gradients match PyTorch to 1e-7, and a separate
-  finite-difference check needs no framework at all (`tests/test_engine.py`).
-- Forward and reverse mode agree as adjoints: $\langle u, Jv \rangle = \langle J^\top u, v \rangle$ to 1e-10,
-  and full Jacobians built column-wise (forward) and row-wise (reverse) match
-  (`tests/test_dual.py`).
-- Second derivatives match PyTorch's double-backward to 1e-8. Newton's method
-  with exact curvature reaches the minimum of a smooth bowl in about 4 steps;
-  gradient descent at learning rate 0.1 takes 50 (`autograd/secondorder.py`).
-- Implicit differentiation through an argmin matches the closed-form ridge
-  derivative to about 1e-16 (`autograd/implicit.py`).
-- Hessian-vector products, computed forward-over-reverse without building the
-  Hessian, match an explicitly assembled Hessian to about 4e-16 (`autograd/hvp.py`).
-- The MLP reaches 99.5% on a two-class spiral; the GPT drives its loss from
-  3.15 to 0.0002 and reproduces its training text exactly (`examples/train_gpt.py`).
-- The trained MLP's loss, as a function of all 1218 parameters, has top
-  Hessian eigenvalue about 11.8, measured with the engine's own Hessian-vector
-  products (`examples/landscape.py`). Section 8 of the guide above shows the
-  resulting loss-landscape slice.
-
-## Files
-
-| Path | What it is |
-|------|------------|
-| **[`autograd/`](autograd/) — the engine** | |
-| [`micrograd.py`](autograd/micrograd.py) | Scalar reverse-mode autograd (Karpathy's micrograd, reimplemented) |
-| [`engine.py`](autograd/engine.py) | The tensor engine: reverse mode on NumPy arrays, broadcasting-aware backward |
-| [`dual.py`](autograd/dual.py) | Forward mode: dual numbers, `jvp`/`vjp`/`jacobian`, the adjoint check |
-| [`secondorder.py`](autograd/secondorder.py) | Order-2 duals: exact second derivatives, dense Hessian, Newton |
-| [`implicit.py`](autograd/implicit.py) | Implicit differentiation: gradients through an argmin |
-| [`hvp.py`](autograd/hvp.py) | Hessian-vector products (Pearlmutter), top eigenvalue, Newton-CG |
-| [`nn.py`](autograd/nn.py) | Linear, Embedding, LayerNorm, Adam, SGD, built on the engine |
-| [`viz.py`](autograd/viz.py) | Renders a computation graph (values and grads) to SVG |
-| **[`examples/`](examples/) — things the engine does** | |
-| [`train_mlp.py`](examples/train_mlp.py) | An MLP on a spiral |
-| [`train_gpt.py`](examples/train_gpt.py) | A small causal Transformer, trained end to end ([minimal-gpt](https://github.com/krrpranav/minimal-gpt) explains the architecture) |
-| [`landscape.py`](examples/landscape.py) | Curvature of the trained MLP via the engine's own Hv |
-| [`benchmark.py`](examples/benchmark.py) | Forward vs reverse cost of a full Jacobian, measured |
-| [`figures.py`](examples/figures.py) | Regenerates the explainer diagrams in `assets/` |
-| **Learning materials** | |
-| [`walkthrough.ipynb`](walkthrough.ipynb) | Build the scalar engine from nothing, step by step |
-| [The guide](#the-guide) (in this README) | The walkthrough: prerequisites, hand traces, exercises, glossary |
-| [`challenge/`](challenge/) | Rebuild the engine yourself against checkpoint tests |
-| [`solutions/`](solutions/) | Worked answers and hints for the exercises |
-| [`NOTES.md`](NOTES.md) | What building this taught me, and what is verified against what |
-| **Verification** | |
-| [`tests/`](tests/) | Per-op checks vs PyTorch, finite differences, the adjoint identity |
-| [`reproduce.py`](reproduce.py) | One command: tests, every demo, every figure |
 
 ## Limitations
 
