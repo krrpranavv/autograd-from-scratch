@@ -41,7 +41,9 @@ one scalar loss, many weights. Forward mode carries a derivative forward
 alongside each value through the same local rules, and is cheap in the opposite
 case. Everything in this repo is one of those two ideas, or the two composed.
 
-![A forward pass computes values; one backward pass fills in every gradient](assets/reverse_mode.svg)
+<p align="center"><img src="assets/reverse_mode.gif" width="640" alt="forward pass fills values, one backward pass fills every gradient"></p>
+<p align="center"><em>every number here is read off the engine's own graph;
+<code>examples/record_backward.py</code> redraws it.</em></p>
 
 ## Quickstart
 
@@ -120,6 +122,7 @@ Numbers from the current code; `reproduce.py` reruns all of them.
 | [`landscape.py`](examples/landscape.py) | Curvature of the trained MLP via the engine's own Hv |
 | [`benchmark.py`](examples/benchmark.py) | Forward vs reverse cost of a full Jacobian, measured |
 | [`figures.py`](examples/figures.py) | Regenerates the explainer diagrams in `assets/` |
+| [`record_training.py`](examples/record_training.py) · [`record_backward.py`](examples/record_backward.py) | Render the README's gifs |
 | **Learning materials** | |
 | [`walkthrough.ipynb`](walkthrough.ipynb) | Build the scalar engine from nothing, step by step |
 | [`GUIDE.md`](GUIDE.md) | The guide: hand traces, exercises, what broke, glossary |
