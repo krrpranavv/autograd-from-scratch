@@ -1,6 +1,6 @@
 # Adding `sin` to all three engines
 
-Try the exercise yourself first (Exercise 3 in the README's guide). This file is the
+Try the exercise yourself first (Exercise 3 in the guide ([GUIDE.md](../GUIDE.md))). This file is the
 worked answer to check against, not a substitute for doing it.
 
 The three facts you need: the value is $\sin x$, the first derivative is

@@ -1,6 +1,6 @@
 # Solutions
 
-Worked answers for the exercises in the README's guide. Try each exercise before
+Worked answers for the exercises in the guide ([GUIDE.md](../GUIDE.md)). Try each exercise before
 opening its file; the point of the exercises is the attempt, and every one of
 them comes with an oracle (finite differences, the adjoint identity, the
 existing tests) that tells you on its own whether your answer is right.
