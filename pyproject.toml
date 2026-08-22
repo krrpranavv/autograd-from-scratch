@@ -20,6 +20,7 @@ dev = [
     "torch>=2.2",   # tests only, as a reference to check gradients against
 ]
 viz = [
+    "imageio>=2.37.4",
     "matplotlib>=3.8",   # figure scripts: landscape.py and benchmark.py
 ]
 
