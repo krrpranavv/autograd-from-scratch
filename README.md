@@ -1,12 +1,8 @@
-<h1 align="center">autograd-from-scratch</h1>
-
-<div align="center">
+# autograd-from-scratch
 
 [![tests](https://github.com/krrpranavv/autograd-from-scratch/actions/workflows/tests.yml/badge.svg)](https://github.com/krrpranavv/autograd-from-scratch/actions/workflows/tests.yml)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
-
-</div>
 
 I built this to understand what `loss.backward()` actually does. It is a small
 automatic differentiation engine in plain NumPy: Karpathy's scalar
@@ -15,6 +11,10 @@ same idea lifted to arrays, then the things I got curious about after that:
 forward mode, exact second derivatives, differentiating through an optimizer's
 solution, and Hessian-vector products. A small MLP and a tiny GPT train on it.
 PyTorch appears only in the tests, as a reference to check gradients against.
+
+<p align="center"><img src="assets/spiral.gif" width="440" alt="an MLP learning a spiral"></p>
+<p align="center"><em>an MLP learning a 2-class spiral. every gradient in every step comes from
+this engine; <code>examples/record_training.py</code> reruns it.</em></p>
 
 ```python
 import numpy as np
